@@ -1,0 +1,35 @@
+# Levanta la API y su base de datos PostgreSQL, cada una en su contenedor.
+# Uso:  docker compose up -d --build
+# Requiere un archivo .env al lado (copiar .env.example y cambiar la contraseña).
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: udiayudaprofe
+      POSTGRES_USER: udi
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # los datos sobreviven aunque se borre el contenedor
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U udi -d udiayudaprofe"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Sin "ports": la base NO queda expuesta a internet, solo la ve la API.
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy        # espera a que PostgreSQL esté listo
+    environment:
+      # "db" es el nombre del servicio de arriba: Docker lo resuelve como hostname
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=udiayudaprofe;Username=udi;Password=${DB_PASSWORD}"
+    ports:
+      - "${API_PORT:-5000}:5000"          # puerto del VPS : puerto del contenedor
+
+volumes:
+  pgdata:

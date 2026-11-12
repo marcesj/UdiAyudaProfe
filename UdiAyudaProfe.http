@@ -1,0 +1,36 @@
+@host = http://localhost:5010
+
+### Listar cursos (datos del seeding)
+GET {{host}}/cursos
+
+### Estudiantes de un curso
+GET {{host}}/cursos/1/estudiantes
+
+### Listar estudiantes
+GET {{host}}/estudiantes
+
+### Obtener un estudiante
+GET {{host}}/estudiantes/1
+
+### Crear estudiante
+POST {{host}}/estudiantes
+Content-Type: application/json
+
+{
+  "nombre": "Sofía Torres",
+  "email": "sofia@udi.edu",
+  "cursoId": 2
+}
+
+### Actualizar estudiante
+PUT {{host}}/estudiantes/1
+Content-Type: application/json
+
+{
+  "nombre": "Ana Pérez Ruiz",
+  "email": "ana@udi.edu",
+  "cursoId": 3
+}
+
+### Eliminar estudiante
+DELETE {{host}}/estudiantes/4

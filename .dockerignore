@@ -1,0 +1,16 @@
+# Carpetas de compilación de Windows: si entran al contenedor rompen el build de Linux
+bin/
+obj/
+
+# Configuración local (tiene la contraseña de tu PostgreSQL de Windows)
+appsettings.Development.json
+.env
+
+# Cosas del editor y de git
+.vscode/
+.git/
+*.http
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -1,0 +1,13 @@
+# Compilación
+bin/
+obj/
+
+# Secretos: nunca subirlos
+.env
+appsettings.Development.json
+
+# Editor / sistema
+.vs/
+*.user
+.DS_Store
+Thumbs.db
