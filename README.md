@@ -65,7 +65,6 @@ cp .env.example .env      # y poner una contraseña real en DB_PASSWORD
 docker compose up -d --build
 curl http://localhost:5000/health
 ```
-Para el deploy en un VPS, ver [DEPLOY.md](DEPLOY.md).
 
 ## Cambiar los datos del seed
 1. Edita `HasData(...)` en `Data/AppDbContext.cs`.
