@@ -37,7 +37,12 @@ namespace UdiAyudaProfe.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("ProfesorId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProfesorId");
 
                     b.ToTable("Cursos");
 
@@ -46,19 +51,22 @@ namespace UdiAyudaProfe.Migrations
                         {
                             Id = 1,
                             Creditos = 4,
-                            Nombre = "Programación I"
+                            Nombre = "Programación I",
+                            ProfesorId = 1
                         },
                         new
                         {
                             Id = 2,
                             Creditos = 3,
-                            Nombre = "Bases de Datos"
+                            Nombre = "Bases de Datos",
+                            ProfesorId = 2
                         },
                         new
                         {
                             Id = 3,
                             Creditos = 3,
-                            Nombre = "Desarrollo Web"
+                            Nombre = "Desarrollo Web",
+                            ProfesorId = 3
                         });
                 });
 
@@ -123,6 +131,69 @@ namespace UdiAyudaProfe.Migrations
                         });
                 });
 
+            modelBuilder.Entity("UdiAyudaProfe.Models.Profesor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Especialidad")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Profesores");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "laura.fernandez@udi.edu",
+                            Especialidad = "Programación",
+                            Nombre = "Laura Fernández"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "jorge.medina@udi.edu",
+                            Especialidad = "Bases de Datos",
+                            Nombre = "Jorge Medina"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Email = "sofia.ramirez@udi.edu",
+                            Especialidad = "Desarrollo Web",
+                            Nombre = "Sofía Ramírez"
+                        });
+                });
+
+            modelBuilder.Entity("UdiAyudaProfe.Models.Curso", b =>
+                {
+                    b.HasOne("UdiAyudaProfe.Models.Profesor", "Profesor")
+                        .WithMany("Cursos")
+                        .HasForeignKey("ProfesorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Profesor");
+                });
+
             modelBuilder.Entity("UdiAyudaProfe.Models.Estudiante", b =>
                 {
                     b.HasOne("UdiAyudaProfe.Models.Curso", "Curso")
@@ -137,6 +208,11 @@ namespace UdiAyudaProfe.Migrations
             modelBuilder.Entity("UdiAyudaProfe.Models.Curso", b =>
                 {
                     b.Navigation("Estudiantes");
+                });
+
+            modelBuilder.Entity("UdiAyudaProfe.Models.Profesor", b =>
+                {
+                    b.Navigation("Cursos");
                 });
 #pragma warning restore 612, 618
         }

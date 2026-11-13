@@ -1,10 +1,71 @@
 @host = http://localhost:5010
 
-### Listar cursos (datos del seeding)
+### ===================== PROFESORES =====================
+
+### Listar profesores (datos del seeding)
+GET {{host}}/profesores
+
+### Obtener un profesor
+GET {{host}}/profesores/1
+
+### Cursos que dicta un profesor
+GET {{host}}/profesores/1/cursos
+
+### Crear profesor
+POST {{host}}/profesores
+Content-Type: application/json
+
+{
+  "nombre": "Pedro Suárez",
+  "email": "pedro.suarez@udi.edu",
+  "especialidad": "Redes"
+}
+
+### Actualizar profesor
+PUT {{host}}/profesores/4
+Content-Type: application/json
+
+{
+  "nombre": "Pedro Suárez",
+  "email": "pedro.suarez@udi.edu",
+  "especialidad": "Redes y Seguridad"
+}
+
+### Eliminar profesor (sus cursos quedan sin profesor, no se borran)
+DELETE {{host}}/profesores/4
+
+### ======================= CURSOS =======================
+
+### Listar cursos (con su profesor y total de estudiantes)
 GET {{host}}/cursos
+
+### Obtener un curso
+GET {{host}}/cursos/1
 
 ### Estudiantes de un curso
 GET {{host}}/cursos/1/estudiantes
+
+### Crear curso con profesor
+POST {{host}}/cursos
+Content-Type: application/json
+
+{
+  "nombre": "Redes",
+  "creditos": 3,
+  "profesorId": 2
+}
+
+### Actualizar curso / cambiarle el profesor (profesorId: null = sin profesor)
+PUT {{host}}/cursos/1
+Content-Type: application/json
+
+{
+  "nombre": "Programación I",
+  "creditos": 4,
+  "profesorId": 3
+}
+
+### ===================== ESTUDIANTES ====================
 
 ### Listar estudiantes
 GET {{host}}/estudiantes
@@ -34,3 +95,8 @@ Content-Type: application/json
 
 ### Eliminar estudiante
 DELETE {{host}}/estudiantes/4
+
+### ======================= GENERAL ======================
+
+### ¿La API está viva?
+GET {{host}}/health

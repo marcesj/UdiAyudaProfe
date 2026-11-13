@@ -31,13 +31,74 @@ using (var scope = app.Services.CreateScope())
 // Endpoint simple para saber si la API está viva (útil en el servidor).
 app.MapGet("/health", () => Results.Ok("OK"));
 
+// ---------- Profesores ----------
+var profesores = app.MapGroup("/profesores");
+
+profesores.MapGet("/", async (AppDbContext db) =>
+    await db.Profesores
+        .OrderBy(p => p.Id)
+        .Select(p => new { p.Id, p.Nombre, p.Email, p.Especialidad, TotalCursos = p.Cursos.Count })
+        .ToListAsync());
+
+profesores.MapGet("/{id:int}", async (int id, AppDbContext db) =>
+    await db.Profesores.FindAsync(id) is Profesor p ? Results.Ok(p) : Results.NotFound());
+
+profesores.MapGet("/{id:int}/cursos", async (int id, AppDbContext db) =>
+    await db.Cursos
+        .Where(c => c.ProfesorId == id)
+        .OrderBy(c => c.Id)
+        .Select(c => new { c.Id, c.Nombre, c.Creditos, TotalEstudiantes = c.Estudiantes.Count })
+        .ToListAsync());
+
+profesores.MapPost("/", async (Profesor profesor, AppDbContext db) =>
+{
+    if (await db.Profesores.AnyAsync(x => x.Email == profesor.Email))
+        return Results.Conflict($"Ya existe un profesor con el email {profesor.Email}");
+
+    db.Profesores.Add(profesor);
+    await db.SaveChangesAsync();
+    return Results.Created($"/profesores/{profesor.Id}", profesor);
+});
+
+profesores.MapPut("/{id:int}", async (int id, Profesor datos, AppDbContext db) =>
+{
+    var p = await db.Profesores.FindAsync(id);
+    if (p is null) return Results.NotFound();
+
+    if (await db.Profesores.AnyAsync(x => x.Email == datos.Email && x.Id != id))
+        return Results.Conflict($"Ya existe un profesor con el email {datos.Email}");
+
+    p.Nombre = datos.Nombre;
+    p.Email = datos.Email;
+    p.Especialidad = datos.Especialidad;
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+profesores.MapDelete("/{id:int}", async (int id, AppDbContext db) =>
+{
+    var p = await db.Profesores.FindAsync(id);
+    if (p is null) return Results.NotFound();
+
+    // Sus cursos NO se borran: quedan con ProfesorId = null (OnDelete SetNull).
+    db.Profesores.Remove(p);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+});
+
 // ---------- Cursos ----------
 var cursos = app.MapGroup("/cursos");
 
 cursos.MapGet("/", async (AppDbContext db) =>
     await db.Cursos
         .OrderBy(c => c.Id)
-        .Select(c => new { c.Id, c.Nombre, c.Creditos, TotalEstudiantes = c.Estudiantes.Count })
+        .Select(c => new
+        {
+            c.Id, c.Nombre, c.Creditos,
+            c.ProfesorId,
+            Profesor = c.Profesor == null ? null : c.Profesor.Nombre,
+            TotalEstudiantes = c.Estudiantes.Count
+        })
         .ToListAsync());
 
 cursos.MapGet("/{id:int}", async (int id, AppDbContext db) =>
@@ -51,9 +112,27 @@ cursos.MapGet("/{id:int}/estudiantes", async (int id, AppDbContext db) =>
 
 cursos.MapPost("/", async (Curso curso, AppDbContext db) =>
 {
+    if (curso.ProfesorId is int pid && !await db.Profesores.AnyAsync(p => p.Id == pid))
+        return Results.BadRequest($"No existe el profesor {pid}");
+
     db.Cursos.Add(curso);
     await db.SaveChangesAsync();
     return Results.Created($"/cursos/{curso.Id}", curso);
+});
+
+cursos.MapPut("/{id:int}", async (int id, Curso datos, AppDbContext db) =>
+{
+    var c = await db.Cursos.FindAsync(id);
+    if (c is null) return Results.NotFound();
+
+    if (datos.ProfesorId is int pid && !await db.Profesores.AnyAsync(p => p.Id == pid))
+        return Results.BadRequest($"No existe el profesor {pid}");
+
+    c.Nombre = datos.Nombre;
+    c.Creditos = datos.Creditos;
+    c.ProfesorId = datos.ProfesorId; // null = dejar el curso sin profesor
+    await db.SaveChangesAsync();
+    return Results.NoContent();
 });
 
 // ---------- Estudiantes ----------

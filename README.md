@@ -2,6 +2,13 @@
 
 API mínima (.NET 10) con Entity Framework Core, PostgreSQL y datos iniciales (seeding).
 
+Tres tablas relacionadas:
+```
+Profesores 1 ──── N Cursos 1 ──── N Estudiantes
+(un profesor dicta     (un curso tiene
+ muchos cursos)         muchos estudiantes)
+```
+
 ## Requisitos
 - .NET SDK 10
 - PostgreSQL en `localhost:5432`
@@ -10,9 +17,9 @@ API mínima (.NET 10) con Entity Framework Core, PostgreSQL y datos iniciales (s
 
 ## Estructura
 ```
-Models/Curso.cs, Models/Estudiante.cs   → entidades
-Data/AppDbContext.cs                    → DbContext + seeding (HasData)
-Migrations/                             → migración generada con el seed
+Models/Profesor.cs, Curso.cs, Estudiante.cs → entidades
+Data/AppDbContext.cs                        → DbContext + relaciones + seeding (HasData)
+Migrations/                                 → InicialConSeed + AgregarProfesores
 Program.cs                              → configuración y endpoints
 UdiAyudaProfe.http                      → peticiones de prueba
 ```
@@ -31,10 +38,17 @@ UdiAyudaProfe.http                      → peticiones de prueba
 ## Endpoints
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | /cursos | Lista de cursos con su número de estudiantes |
+| GET | /profesores | Lista de profesores con su número de cursos |
+| GET | /profesores/{id} | Un profesor |
+| GET | /profesores/{id}/cursos | Cursos que dicta un profesor |
+| POST | /profesores | Crear profesor (email único → 409 si se repite) |
+| PUT | /profesores/{id} | Actualizar profesor |
+| DELETE | /profesores/{id} | Eliminar profesor (sus cursos quedan sin profesor) |
+| GET | /cursos | Lista de cursos con su profesor y número de estudiantes |
 | GET | /cursos/{id} | Un curso |
 | GET | /cursos/{id}/estudiantes | Estudiantes de un curso |
-| POST | /cursos | Crear curso |
+| POST | /cursos | Crear curso (`profesorId` opcional) |
+| PUT | /cursos/{id} | Actualizar curso / cambiar o quitar el profesor |
 | GET | /estudiantes | Lista de estudiantes |
 | GET | /estudiantes/{id} | Un estudiante |
 | POST | /estudiantes | Crear estudiante |
